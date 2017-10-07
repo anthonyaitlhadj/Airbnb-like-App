@@ -14,7 +14,11 @@ var messaging = require('../messaging.json');
 // get all chat room existing
 router.get('/rooms', function (req, res, next) {
 	var mapped = _.map(messaging.chatRooms, _.partialRight(_.pick, ['id', 'name']));
-	res.json(mapped);
+	if (mapped.length > 0) {
+		res.json(mapped);
+	} else {
+		res.status(404).json({error:404, message : 'there are no rooms'});
+	}
 });
 
 router.post('/rooms/create', function (req, res, next) {
@@ -48,7 +52,14 @@ router.post('/messages/create/room/:room_id/user/:user_id/pwd/:pwd', function (r
 	} else {
 		var filterRoom = _.findIndex(messaging.chatRooms, {id: parseInt(room)});
 		var filterUser = _.findIndex(users, {id: parseInt(user)});
-		if(filterRoom >= 0) {
+
+		var errorMsg = '';
+		if (filterRoom < 0) errorMsg += '(chat room) ';
+		if (filterUser < 0) errorMsg += '(user) ';
+		if(errorMsg != ''){
+			res.status(404).json({error:404, message: errorMsg + 'not found'});
+		} else {
+
 			var messageID = !messaging.chatRooms[filterRoom].messages.length > 0 ? 0 : messaging.chatRooms[filterRoom].messages[messaging.chatRooms[filterRoom].messages.length - 1].id + 1;
 
 			bcrypt.compare(pwd, users[filterUser].password, function (err, match) {
@@ -67,8 +78,6 @@ router.post('/messages/create/room/:room_id/user/:user_id/pwd/:pwd', function (r
 					});
 				}
 			});
-		} else {
-			res.status(404).json({error:404, message: 'chat room not found'});
 		}
 	}
 });
@@ -84,6 +93,22 @@ router.get('/rooms/:room_id', function (req, res, next) {
 		res.json(messaging.chatRooms[filterRoom]);
 	} else {
 		res.status(404).json({error: 404, message:'room messaging '+room+' not found'})
+	}
+});
+
+/**
+ * delete room
+ * :room_id is the id of room to delete
+ */
+router.delete('/rooms/delete/:room_id', function (req, res, next) {
+	var room = req.params.room_id;
+	var roomRemoved = _.remove(messaging.chatRooms, {id: parseInt(room)});
+	if (roomRemoved.length > 0) {
+		fs.writeFile(dataFilename, JSON.stringify(messaging), 'utf8', function () {
+			res.json({'room removed': roomRemoved});
+		});
+	} else {
+		res.status(404).json({error:404, message : 'nothing to remove'});
 	}
 });
 
