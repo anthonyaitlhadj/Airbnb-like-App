@@ -1,0 +1,9 @@
+{
+  "chatRooms": [
+	{
+	  "id": 0,
+	  "name": "test",
+	  "messages": []
+	}
+  ]
+}
