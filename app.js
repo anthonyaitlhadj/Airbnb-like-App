@@ -29,7 +29,7 @@ app.use('/users', users);
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
-  res.json({'error': 'ressource non trouvé'})
+  next(err);
 });
 
 // error handler
@@ -40,7 +40,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.json(err);
 });
 
 module.exports = app;
