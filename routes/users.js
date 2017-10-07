@@ -22,6 +22,7 @@ router.get('/id/:id/pwd/:pwd', function(req, res, next) {
 				var dataJson = JSON.parse(data);
 				var filter = _.findIndex(dataJson.users, {id: parseInt(userID)});
 				if (filter >= 0) {
+					// vérification du mot de passe pour modification
 					bcrypt.compare(userPWD, dataJson.users[filter].password, function (err, match) {
 						if (!match) {
 							res.status(401).json({'error': 401, 'message' : 'authentication mauvais'})
@@ -54,8 +55,7 @@ router.post('/create', function(req, res, next) {
 				var dataJson = JSON.parse(data);
 				var userID = !dataJson.users.length > 0 ? 0 : dataJson.users[dataJson.users.length-1].id + 1;
 				dataJson.users.push({id: userID, username: username, password: hash});
-				var json = JSON.stringify(dataJson);
-				fs.writeFile(dataFilename, json, 'utf8', function () {
+				fs.writeFile(dataFilename, JSON.stringify(dataJson), 'utf8', function () {
 					res.json({'success': 'utilisateur ' + userID + ' créé (username: ' + username + ' mdp: ' + password + ')'})
 				});
 			}
@@ -79,6 +79,7 @@ router.patch('/update/:id/pwd/:pwd', function (req, res, next) {
 				dataJson = JSON.parse(dataJson);
 				var filter = _.findIndex(dataJson.users, {id: parseInt(userID)});
 				if (filter >= 0) {
+					// verification du mot de passe pour modification
 					bcrypt.compare(userPWD, dataJson.users[filter].password, function (err, match) {
 						if (!match) {
 							res.status(401).json({'error': 401, 'message' : 'authentication mauvais'})
