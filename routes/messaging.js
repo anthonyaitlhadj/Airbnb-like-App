@@ -48,7 +48,14 @@ router.post('/messages/create/room/:room_id/user/:user_id/pwd/:pwd', function (r
 	} else {
 		var filterRoom = _.findIndex(messaging.chatRooms, {id: parseInt(room)});
 		var filterUser = _.findIndex(users, {id: parseInt(user)});
-		if(filterRoom >= 0) {
+
+		var errorMsg = '';
+		if (filterRoom < 0) errorMsg += '(chat room) ';
+		if (filterUser < 0) errorMsg += '(user) ';
+		if(errorMsg != ''){
+			res.status(404).json({error:404, message: errorMsg + 'not found'});
+		} else {
+
 			var messageID = !messaging.chatRooms[filterRoom].messages.length > 0 ? 0 : messaging.chatRooms[filterRoom].messages[messaging.chatRooms[filterRoom].messages.length - 1].id + 1;
 
 			bcrypt.compare(pwd, users[filterUser].password, function (err, match) {
@@ -67,8 +74,6 @@ router.post('/messages/create/room/:room_id/user/:user_id/pwd/:pwd', function (r
 					});
 				}
 			});
-		} else {
-			res.status(404).json({error:404, message: 'chat room not found'});
 		}
 	}
 });
@@ -85,6 +90,12 @@ router.get('/rooms/:room_id', function (req, res, next) {
 	} else {
 		res.status(404).json({error: 404, message:'room messaging '+room+' not found'})
 	}
+});
+
+router.delete('/rooms/delete/:room_id', function (req, res, next) {
+	var room = req.params.room_id;
+	var roomRemoved = _.remove(messaging.chatRooms, {id: parseInt(room)});
+	res.json(roomRemoved);
 });
 
 module.exports = router;
