@@ -14,7 +14,11 @@ var messaging = require('../messaging.json');
 // get all chat room existing
 router.get('/rooms', function (req, res, next) {
 	var mapped = _.map(messaging.chatRooms, _.partialRight(_.pick, ['id', 'name']));
-	res.json(mapped);
+	if (mapped.length > 0) {
+		res.json(mapped);
+	} else {
+		res.status(404).json({error:404, message : 'there are no rooms'});
+	}
 });
 
 router.post('/rooms/create', function (req, res, next) {
@@ -92,10 +96,20 @@ router.get('/rooms/:room_id', function (req, res, next) {
 	}
 });
 
+/**
+ * delete room
+ * :room_id is the id of room to delete
+ */
 router.delete('/rooms/delete/:room_id', function (req, res, next) {
 	var room = req.params.room_id;
 	var roomRemoved = _.remove(messaging.chatRooms, {id: parseInt(room)});
-	res.json(roomRemoved);
+	if (roomRemoved.length > 0) {
+		fs.writeFile(dataFilename, JSON.stringify(messaging), 'utf8', function () {
+			res.json({'room removed': roomRemoved});
+		});
+	} else {
+		res.status(404).json({error:404, message : 'nothing to remove'});
+	}
 });
 
 module.exports = router;
