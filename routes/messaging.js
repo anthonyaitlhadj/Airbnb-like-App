@@ -48,27 +48,28 @@ router.post('/messages/create/room/:room_id/user/:user_id/pwd/:pwd', function (r
 	} else {
 		var filterRoom = _.findIndex(messaging.chatRooms, {id: parseInt(room)});
 		var filterUser = _.findIndex(users, {id: parseInt(user)});
-		if(filterRoom >=0) res.status(404).json({error:404, message: 'chat room not found'});
+		if(filterRoom >= 0) {
+			var messageID = !messaging.chatRooms[filterRoom].messages.length > 0 ? 0 : messaging.chatRooms[filterRoom].messages[messaging.chatRooms[filterRoom].messages.length - 1].id + 1;
 
-		var messageID = !messaging.chatRooms[filterRoom].messages.length > 0 ? 0 : messaging.chatRooms[filterRoom].messages[messaging.chatRooms[filterRoom].messages.length-1].id + 1;
-
-		bcrypt.compare(pwd, users[filterUser].password, function (err, match) {
-			if (!match){
-				res.status(401).json({error:401,message:'forbidden'})
-			} else {
-				// insertion message
-				messaging.chatRooms[filterRoom].messages.push({
-					id: messageID,
-					user: users[filterUser].id,
-					text: messageText,
-					date: new Date().toISOString()
-				});
-				fs.writeFile(dataFilename, JSON.stringify(messaging), 'utf8', function () {
-					res.json(messaging.chatRooms[filterRoom])
-				});
-			}
-		});
-
+			bcrypt.compare(pwd, users[filterUser].password, function (err, match) {
+				if (!match) {
+					res.status(401).json({error: 401, message: 'forbidden'})
+				} else {
+					// insertion message
+					messaging.chatRooms[filterRoom].messages.push({
+						id: messageID,
+						user: users[filterUser].id,
+						text: messageText,
+						date: new Date().toISOString()
+					});
+					fs.writeFile(dataFilename, JSON.stringify(messaging), 'utf8', function () {
+						res.json(messaging.chatRooms[filterRoom])
+					});
+				}
+			});
+		} else {
+			res.status(404).json({error:404, message: 'chat room not found'});
+		}
 	}
 });
 
