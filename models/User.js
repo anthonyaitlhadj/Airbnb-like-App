@@ -4,7 +4,7 @@ var mongoose = require('mongoose'), // Nous appelons le module mongoose
 var UserSchema = new Schema({
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
-    email: { type: String, required: true },
+    email: { type: String, required: true,  unique: true },
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     createdOn: { type: Date, default: Date.now }

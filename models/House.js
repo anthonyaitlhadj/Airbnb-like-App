@@ -5,7 +5,7 @@ var HouseSchema = new Schema({
     address: { type: String, required: true },
     city: { type: String, required: true },
     country: { type: String, required: true },
-    postalcode: { type: String, required: true, unique: true },
+    postalcode: { type: String, required: true },
     createdOn: { type: Date, default: Date.now }
 });
 
