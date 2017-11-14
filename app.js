@@ -4,18 +4,19 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
-var messaging = require('./routes/messaging');
 var bookings = require('./routes/bookings');
-var searchs = require('./routes/searchs');
+var houses = require('./routes/houses');
 
 var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://admin:5Vn8XEOBGfSBVE1q@cluster0-shard-00-00-uckpb.mongodb.net:27017,cluster0-shard-00-01-uckpb.mongodb.net:27017,cluster0-shard-00-02-uckpb.mongodb.net:27017/airbnb?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin', function(err) {
+  if (err) { throw err; }
+});
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -23,13 +24,11 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
-app.use('/chat', messaging);
 app.use('/bookings', bookings);
-app.use('/searchs', searchs);
+app.use('/houses', houses);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -46,7 +45,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.json(err);
+  res.json({'error': res.locals.message, 'info' : res.locals.error});
 });
 
 module.exports = app;
