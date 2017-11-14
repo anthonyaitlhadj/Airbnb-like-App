@@ -11,7 +11,7 @@ var Bookings = {
 
             // object of all the users
             console.log(bookings);
-            res.render('bookings/index', {"bookings" : bookings});
+            res.json({"bookings" : bookings});
         });
 
 
@@ -21,6 +21,7 @@ var Bookings = {
         //console.log(req.body, req);
         var b = new Booking({
 
+            user_id: req.params.user_id,
             msisdn: req.body.msisdn,
             beginDate: req.body.beginDate,
             endDate: req.body.endDate
@@ -56,7 +57,7 @@ var Bookings = {
 
         });
 
-        res.render('bookings/update');
+        res.json({success: true});
     },
     delete: function (req, res) {
 
@@ -71,7 +72,7 @@ var Bookings = {
             });
         });
 
-        res.render('bookings/delete');
+        res.json({success: true});
     }
 
 };

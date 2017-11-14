@@ -11,7 +11,7 @@ var Users = {
 
             // object of all the users
             console.log(users);
-            res.render('users/index', {"users" : users});
+            res.send({"users" : users});
         });
 
 
@@ -43,22 +43,22 @@ var Users = {
 
     update: function (req, res) {
 
-        User.findById(req.params.id, function (err, user) {
-            if (err) throw err;
-
-            // change the users location
-            user.name = req.body;
-
-            // save the user
-            user.save(function (err) {
-                if (err) throw err;
-
-                console.log('User successfully updated!');
-            });
-
+        if (Object.keys(req.body).length === 0) {
+            return res.status(406).json('rien a mettre à jour')
+        }
+      
+        User.findByIdAndUpdate(req.params.id, {$set: req.body}, {runValidators : true, new: true, context: 'query'}, function (err, user) {
+            if (err) {
+                var error = [];
+                if (err.name == 'ValidationError') {
+                    Object.entries(err.errors).forEach(function(val, key) {
+                        error.push({field: val[0], message: val[1].message});
+                    }, this);
+                    return res.status(500).json(error)
+                };
+            }
+            res.json({'updated': user})
         });
-
-        res.render('users/update');
     },
     delete: function (req, res) {
 
@@ -73,7 +73,7 @@ var Users = {
             });
         });
 
-        res.render('users/delete');
+        res.json({success : true});
     },
 
 
@@ -82,30 +82,23 @@ var Users = {
 
         /*------VALEURS RENTREES-----*/
 
-        connect = {
-            email : req.body.email,
-            password : req.body.password
+        var log = {
+            email : req.query.email,
+            password : req.query.password
         };
         console.log('--------Informations rentrées LogIn--------');
         console.log('infos rentrées : ');
-        console.log('email : ' + connect.email);
-        console.log('password : ' + connect.password);
+        console.log('email : ' + log.email);
+        console.log('password : ' + log.password);
 
         /*-----VERIFICATION EXISTENCE EMAIL DANS BDD-----*/
 
-        User.findOne({ 'email' : connect.email, 'password' : connect.password}, function(err, userStock){
+        User.findOne({ 'email' : log.email, 'password' : log.password}, function(err, userStock){
             if (!userStock) {
                 console.log('Can\'t find admin user. Please create one');
-                res.render('users/Inscription');
-            }
-
-            else{
-                var password = req.body.password;
-                var adminPass = userStock.pwd;
-                if (password == adminPass) {
-                    req.session.email = userStock.email;
-                }
-                res.redirect('http://localhost:3000/home');
+                res.json({success : false});
+            } else {
+                res.json(userStock)
             }
         });
 

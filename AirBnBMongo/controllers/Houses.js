@@ -11,7 +11,7 @@ var Houses = {
 
             // object of all the users
             console.log(houses);
-            res.render('houses/index', {"houses" : houses});
+            res.json({"houses" : houses});
         });
 
 
@@ -41,22 +41,22 @@ var Houses = {
 
     update: function (req, res) {
 
-        House.findById(req.params.id, function (err, house) {
-            if (err) throw err;
-
-            // change the users location
-            house.name = req.body;
-
-            // save the user
-            house.save(function (err) {
-                if (err) throw err;
-
-                console.log('House successfully updated!');
-            });
-
+        if (Object.keys(req.body).length === 0) {
+            return res.status(406).json('rien a mettre à jour')
+        }
+      
+        House.findByIdAndUpdate(req.params.id, {$set: req.body}, {runValidators : true, new: true, context: 'query'}, function (err, house) {
+            if (err) {
+                var error = [];
+                if (err.name == 'ValidationError') {
+                    Object.entries(err.errors).forEach(function(val, key) {
+                        error.push({field: val[0], message: val[1].message});
+                    }, this);
+                    return res.status(500).json(error)
+                };
+            }
+            res.json({'updated': house})
         });
-
-        res.render('houses/update');
     },
     delete: function (req, res) {
 
@@ -71,7 +71,7 @@ var Houses = {
             });
         });
 
-        res.render('houses/delete');
+        res.json('houses/delete');
     }
 
 };
